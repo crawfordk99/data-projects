@@ -45,14 +45,14 @@ _A Client has requested this analysis and this is your one shot of what you woul
 #| label: project data
 #| code-summary: Read and format project data
 # Include and execute your code here
-df = pd.read_csv("https://raw.githubusercontent.com/byuidatascience/data4python4ds/master/data-raw/mpg/mpg.csv")
+df = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
 ```
 
 __Highlight the Questions and Tasks__
 
 ## Question|Task 1
 
-__COPY PASTE QUESTION|TASK 1 FROM THE PROJECT HERE__
+Finish the readings and be prepared with any questions to get your environment working smoothly (class for on-campus and Slack for online)
 
 _Add details here to answer the question but `NOT` like an assignment Q&A. You need to `write your answers as a consulting solution report`. A Client needs to understand the answer, but also needs to understand the decisions that went into the answer (when applicable)._
 

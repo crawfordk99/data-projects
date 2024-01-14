@@ -1,0 +1,178 @@
+---
+title: "Client Report - Project 0"
+subtitle: "Course DS 250"
+author: "Keith Crawford"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+```
+
+
+## 
+
+Overall, the bigger the engine size, the more gas used driving on the highway. We can see in the scatter plot that I created that gas mileage tends to be around 25-35 on the highway with smaller engines. As you increase the engine size, the mileage drops to as low as 12 mpg, and generally fall within 14-25 mpg.
+_A SHORT (4-5 SENTENCES) PARAGRAPH THAT `DESCRIBES KEY INSIGHTS` TAKEN FROM METRICS IN THE PROJECT RESULTS THINK TOP OR MOST IMPORTANT RESULTS._
+
+```{python}
+#| label: project data
+#| code-summary: Read and format project data
+# Include and execute your code here
+df = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
+```
+
+__Highlight the Questions and Tasks__
+
+## QUESTION|TASK 1
+
+Finish the readings and be prepared with any questions to get your environment working smoothly (class for on-campus and Slack for online)
+
+I got everything working after going to the tutoring lab.
+
+```{python}
+#| label: Q1
+#| code-summary: Read and format data
+# Include and execute your code here
+
+
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+```{python}
+#| label: Q1 chart
+#| code-summary: plot example
+#| fig-cap: "My useless chart"
+#| fig-align: center
+# Include and execute your code here
+chart = px.bar(df.head(200),
+    x="name", 
+    y="AK"
+)
+chart.show()
+```
+
+
+```{python}
+#| label: Q1 table
+#| code-summary: table example
+#| tbl-cap: "Not much of a table"
+#| tbl-cap-location: top
+# Include and execute your code here
+mydat = df.head(1000)\
+    .groupby('year')\
+    .sum()\
+    .reset_index()\
+    .tail(10)\
+    .filter(["year", "AK","AR"])
+
+display(mydat)
+
+```
+
+
+## QUESTION|TASK 2
+
+In VS Code, write a python script to create the example chart from section 3.2.2 of the textbook (part of the assigned readings). Note that you will be using Plotly Express to display the chart instead of Altair which is used in the book.
+
+The bigger the engine size, the less gas mileage it will have on the highway. Or in other words, it will consume more gas. 
+
+```{python}
+#| label: Q2
+#| code-summary: Read and format data
+# Include and execute your code here
+url = "https://github.com/byuidatascience/data4python4ds/raw/master/data-raw/mpg/mpg.csv"
+mpg = pd.read_csv(url)
+
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+```{python}
+#| label: Q2 chart
+#| code-summary: plot example
+#| fig-cap: "My useless chart"
+#| fig-align: center
+# Include and execute your code here
+chart = px.scatter(mpg,
+    x="displ", 
+    y="hwy"
+)
+chart.show()
+```
+
+
+```{python}
+#| label: Q2 table
+#| code-summary: table example
+#| tbl-cap: "Not much of a table"
+#| tbl-cap-location: top
+# Include and execute your code here
+
+
+```
+
+
+## QUESTION|TASK 3
+
+Your final report should also include the markdown table created from the following (assuming you have mpg from question 2).
+
+I was unable to get this working so far. It keeps giving me the tabulate is missing error. I deleted Python 3.10, so I should only have 3.11.4. Overall, I ran out of time for this week. I will stop by the tutoring lab to see if they can help me fix that problem so it's not a problem in the future.
+
+```{python}
+#| label: Q3
+#| code-summary: Read and format data
+# Include and execute your code here
+
+
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+```{python}
+#| label: Q3 chart
+#| code-summary: plot example
+#| fig-cap: "My useless chart"
+#| fig-align: center
+# Include and execute your code here
+
+```
+
+
+```{python}
+#| label: Q3 table
+#| code-summary: table example
+#| tbl-cap: "Not much of a table"
+#| tbl-cap-location: top
+# Include and execute your code here
+#print(mpg
+  #.head(5)
+  #.filter(["manufacturer", "model","year", "hwy"])
+  #.to_markdown(index=False))
+
+```
