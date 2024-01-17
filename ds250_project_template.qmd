@@ -50,7 +50,7 @@ df = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-
 
 __Highlight the Questions and Tasks__
 
-## Question|Task 1
+## Finished Readings
 
 Finish the readings and be prepared with any questions to get your environment working smoothly (class for on-campus and Slack for online)
 
