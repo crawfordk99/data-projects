@@ -34,10 +34,10 @@ import plotly.express as px
 ```
 
 
-## Elevator pitch
+## History of Name Usage
 
-_paste your elevator pitch here_
-_A SHORT (4-5 SENTENCES) PARAGRAPH THAT `DESCRIBES KEY INSIGHTS` TAKEN FROM METRICS IN THE PROJECT RESULTS THINK TOP OR MOST IMPORTANT RESULTS._
+_Traditional English names have taken a nosedive since the change of the century. All the names I researched peaked from 1950-1990, and they all took nosedives by 2000 in terms of usage. The newer generations are turning away from tradition and trying to be more creative, rather than picking names from scripture, or pop culture, or trends. Out with the old and in with the new._
+
 
 ```{python}
 #| label: project data
@@ -52,7 +52,7 @@ df = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-
 
 __How does your name at your birth year compare to its use historically?__
 
-_Looks like my name peaked in the 1950's to 1960's, and it's been on a steady decline since. The bar chart shows there was only about 1600 Keiths born in 1999, a far cry from the 12,000 Keiths around it's peak._
+_Looks like my name peaked in the 1950's to 1960's, and it's been on a steady decline since. The arrow shows there was only about 1600 Keiths born in 1999, a far cry from the 12,000 Keiths around it's peak._
 
 ```{python}
 #| label: Q1
@@ -80,16 +80,18 @@ chart = px.line(
     y="Total",
     title= "Keith's Historic Usage"
 )
-#adding a bar to show how many Keiths were born in 1999
-history= px.bar(
-    filter,
-    x="name",
-    y="Total",
-    title="Keith's born in 1999"
+chart.add_annotation(
+    x=1999,
+    y=1642,
+    text= "Keiths born in 1999",
+    showarrow= True,
+    arrowhead= 2,
+    arrowsize=1,
+    arrowwidth=2
 )
 
 chart.show()
-history.show()
+
 
 ```
 
@@ -108,7 +110,7 @@ history.show()
 
 __If you talked to someone named Brittany on the phone, what is your guess of his or her age? What ages would you not guess?__
 
-_type your results and analysis here_
+_Just off my own intuition I would say somewhere between 30-50. I don't know too many near my age, nor many younger. This is backed up by the line chart since it peaked in the 90s and has been on a drastic decline since._
 
 ```{python}
 #| label: Q2
@@ -118,7 +120,7 @@ _type your results and analysis here_
 
 ```
 
-_Just off my own intuition I would say somewhere between 30-50. I don't know too many near my age, nor many younger. This is backed up by the line chart since it peaked in the 90s and has been on a drastic decline since._
+
 
 ```{python}
 #| label: Q2 chart
@@ -151,7 +153,7 @@ chart.show()
 
 __Mary, Martha, Peter, and Paul are all Christian names. From 1920 - 2000, compare the name usage of each of the four names. What trends do you notice?__
 
-_type your results and analysis here_
+_Mary was already far more popular going into 1920, had a short dip and then along with the other 3 peaked during the 1950's (Mary had 53,000 babies named after her in 1950!), before all 4 names took a nosedive in the 60's and beyond. By 2000 they were all under 10,000 in terms of babies being named after them._
 
 ```{python}
 #| label: Q3
@@ -161,7 +163,7 @@ _type your results and analysis here_
 
 ```
 
-_include figures in chunks and discuss your findings in the figure._
+
 
 ```{python}
 #| label: Q3 chart
@@ -169,10 +171,10 @@ _include figures in chunks and discuss your findings in the figure._
 #| fig-cap: "Christian Name Comparison"
 #| fig-align: center
 # Include and execute your code here
-mmppfilter= df[(df.year=="1920-2000") & (df.name=="Mary") & (df.name=="Martha") & (df.name=="Paul") & (df.name=="Peter")]
-chart = px.bar(
+mmppfilter= df[(df.year > 1919) & (df.year < 2001) & (df.name=="Mary") | (df.name=="Martha") | (df.name=="Paul") | (df.name=="Peter")]
+chart = px.line(
     mmppfilter,
-    x="name", 
+    x="year", 
     y="Total",
     title= "Change in Popular Christian Name Usage 1920-2000", 
     color= "name"
@@ -220,6 +222,15 @@ chart = px.line(
     filter,
     x="year", 
     y="Total",
+)
+chart.add_annotation(
+    text= "Rocky comes out",
+    x=1976,
+    y=373, 
+    showarrow=True,
+    arrowsize=1,
+    arrowhead=2,
+    arrowwidth=2
 )
 chart.show()
 ```
