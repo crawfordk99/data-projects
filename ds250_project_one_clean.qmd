@@ -132,9 +132,20 @@ filter = df[df.name=="Brittany"]
 chart = px.line(
     filter,
     x="year", 
-    y="Total"
+    y="Total",
+    title="Brittany's Historic Usage"
+)
+chart.add_annotation(
+    text="Brittany's Peak",
+    x=1990,
+    y=32000,
+    showarrow= True,
+    arrowsize=1,
+    arrowhead=2,
+    arrowwidth=2
 )
 chart.show()
+
 ```
 
 
@@ -179,6 +190,16 @@ chart = px.line(
     title= "Change in Popular Christian Name Usage 1920-2000", 
     color= "name"
 )
+chart.add_annotation(
+    text="1920 starts here",
+    x=1920,
+    y=20000,
+    showarrow=True,
+    arrowsize=1,
+    arrowhead=2,
+    arrowwidth=2
+)
+
 chart.show()
 ```
 

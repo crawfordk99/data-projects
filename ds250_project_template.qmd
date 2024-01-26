@@ -80,10 +80,11 @@ _include figures in chunks and discuss your findings in the figure._
 #| fig-cap: "My useless chart"
 #| fig-align: center
 # Include and execute your code here
-
-chart = px.bar(df.head(200),
+filter= df[df.name=="Oliver"]
+chart = px.bar(
+    filter,
     x="name", 
-    y="AK"
+    y="UT"
 )
 chart.show()
 ```
