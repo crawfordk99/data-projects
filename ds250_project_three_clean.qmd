@@ -1,0 +1,244 @@
+---
+title: "Client Report - Project 3"
+subtitle: "Course DS 250"
+author: "Keith Crawford"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import sqlite3 as sql
+```
+
+
+## Play Ball!
+
+
+_Baseball is an interesting sport to record stats on because even the best hitters still only hit around .350-.400 of their at bats. Even if you include walks, they're on base percentage is still at best around .450-.500. It's important to have context when reading into baseball stats. 1-season anomalies are especially prevalent in baseball. A .350 batting average is much more impressive at 1500 at bats than hitting 1.0 after 3, or .642 after 20._
+
+```{python}
+#| label: project data
+#| code-summary: Read and format project data
+# Include and execute your code here
+sqlLite= sql.connect('lahmansbaseballdb.sqlite')
+cursor = sqlLite.cursor()
+```
+
+
+
+## BYUI Can Play Ball Too!
+
+__Write an SQL query to create a new dataframe about baseball players who attended BYU-Idaho. The new table should contain five columns: playerID, schoolID, salary, and the yearID/teamID associated with each salary. Order the table by salary (highest to lowest) and print out the table in your report.__
+
+_Completed task._
+
+```{python}
+#| label: Q1
+#| code-summary: Read and format data
+# Include and execute your code here
+sql_command= '''CREATE TABLE byuiplayers AS 
+SELECT DISTINCT collegeplaying.playerID, collegeplaying.schoolID, salaries.yearID, salaries.teamID, salaries.salary 
+FROM collegeplaying, salaries
+WHERE schoolID = 'idbyuid' AND salary > 0;
+
+'''
+
+sql_search= '''
+SELECT DISTINCT * FROM byuiplayers
+ORDER BY salary DESC;
+'''
+
+sql_drop = ''' DROP TABLE byuiplayers;
+'''
+# cursor.execute(sql_command)
+cursor.execute(sql_search)
+# cursor.execute(sql_drop)
+result= cursor.fetchall()
+byuidf = pd.DataFrame(result, columns = ['playerID', 'schoolID', 'yearID', 'teamID', 'salary'])
+byuidf
+
+```
+
+
+
+```{python}
+#| label: Q1 chart
+#| code-summary: plot example
+#| fig-cap: ""
+#| fig-align: center
+# Include and execute your code here
+
+```
+
+
+```{python}
+#| label: Q1 table
+#| code-summary: table example
+#| tbl-cap: ""
+#| tbl-cap-location: top
+# Include and execute your code here
+
+
+```
+
+
+## Top 5 Hitters
+
+__This three-part question requires you to calculate batting average (number of hits divided by the number of at-bats)__
+
+__Write an SQL query that provides playerID, yearID, and batting average for players with at least 1 at bat that year. Sort the table from highest batting average to lowest, and then by playerid alphabetically. Show the top 5 results in your report.__
+
+__Use the same query as above, but only include players with at least 10 at bats that year. Print the top 5 results.__
+
+__Now calculate the batting average for players over their entire careers (all years combined). Only include players with at least 100 at bats, and print the top 5 results.__
+
+_The more at-bats a player has the harder it is to keep up the batting average. You can get lucky and hit 100% after a few bats or so, but once you start getting past 10 at bats it gets harder and harder to keep hitting. A lot of the highest batting averages where back when baseball was starting too back in the 1800s. In modern baseball you'll rarely see anyone hitting over .350 for their career._
+
+_Part A_
+
+```{python}
+#| label: Q2 Part A
+#| code-summary: Read and format data
+# Include and execute your code here
+sql_query = '''
+SELECT playerID, teamID, CAST(H as FLOAT)/AB AS ba FROM batting
+WHERE AB > 1
+ORDER BY ba DESC, playerID
+LIMIT 5;
+'''
+cursor.execute(sql_query)
+result = cursor.fetchall()
+ab1df = pd.DataFrame(result, columns = ['playerID', 'teamID', 'Batting Average'])
+ab1df
+```
+
+_Part B_
+
+```{python}
+#| label: Q2 Part B
+#| code-summary: plot example
+#| fig-cap: "Top 5 BA with more than 10 AB"
+#| fig-align: center
+# Include and execute your code here
+sql_query = '''
+SELECT playerID, teamID, CAST(H as FLOAT)/AB AS ba FROM batting
+WHERE AB > 10
+ORDER BY ba DESC, playerID
+LIMIT 5;
+'''
+cursor.execute(sql_query)
+result = cursor.fetchall()
+ab10df = pd.DataFrame(result, columns = ['playerID', 'teamID', 'Batting Average'])
+ab10df
+```
+
+_Part C_
+
+```{python}
+#| label: Q2 Part C
+#| code-summary: table example
+#| tbl-cap: "Top 5 Career BA with atleast 100 AB"
+#| tbl-cap-location: top
+# Include and execute your code here
+sql_query = '''
+SELECT playerID, teamID, CAST(H as FLOAT)/AB AS ba FROM batting
+WHERE AB > 100
+GROUP BY playerID
+ORDER BY ba DESC, playerID
+LIMIT 5;
+'''
+
+cursor.execute(sql_query)
+
+result = cursor.fetchall()
+ab100df = pd.DataFrame(result, columns = ['playerID', 'teamID', 'Batting Average'])
+ab100df
+
+```
+
+
+## Boston vs New York in Walks
+
+__Pick any two baseball teams and compare them using a metric of your choice (average salary, home runs, number of wins, etc). Write an SQL query to get the data you need, then make a graph using Plotly Express to visualize the comparison. What do you learn?__
+
+_New York has been slightly better all-time at drawing walks than Boston by just over a 1000 walks. Walks are represented in baseball by the abbreviation BB._
+
+```{python}
+#| label: Q3
+#| code-summary: Read and format data
+# Include and execute your code here
+sql_query = ''' SELECT teamID, SUM(BB) FROM batting
+WHERE teamID = 'NYA' OR teamID = 'BOS'
+GROUP BY teamID
+'''
+cursor.execute(sql_query)
+
+result = cursor.fetchall()
+# Creating dataframe to create bar chart
+df1 = pd.DataFrame(result, columns = ['teamID', 'BB'])
+
+
+```
+
+
+```{python}
+#| label: Q3 chart
+#| code-summary: plot example
+#| fig-cap: "All-time walks between NY and Boston"
+#| fig-align: center
+# Include and execute your code here
+chart = px.bar(
+    df1, 
+    x='teamID',
+    y='BB',
+    title= 'Number of Walks All-Time, Boston Vs New York'
+)
+chart.add_annotation(
+    x= 'BOS',
+    y= 65000,
+    text= '64488 Walks',
+    showarrow= True
+)
+chart.add_annotation(
+    x= 'NYA',
+    y= 66000,
+    text= '65678 Walks',
+    showarrow= True
+)
+chart.show()
+```
+
+
+```{python}
+#| label: Q3 table
+#| code-summary: table example
+#| tbl-cap: "Not much of a table"
+#| tbl-cap-location: top
+# Include and execute your code here
+
+
+```

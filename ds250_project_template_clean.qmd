@@ -1,5 +1,5 @@
 ---
-title: "Client Report - Project 0"
+title: "Client Report - Project 3"
 subtitle: "Course DS 250"
 author: "Keith Crawford"
 format:
@@ -31,13 +31,13 @@ execute:
 import pandas as pd
 import numpy as np
 import plotly.express as px
-
 ```
 
 
-## Relationship between Engine Size and MPG
+## Elevator pitch
 
-Overall, the bigger the engine size, the more gas used driving on the highway. We can see in the scatter plot that I created that gas mileage tends to be around 25-35 on the highway with smaller engines. As you increase the engine size, the mileage drops to as low as 12 mpg, and generally fall within 14-25 mpg.
+_paste your elevator pitch here_
+_A SHORT (4-5 SENTENCES) PARAGRAPH THAT `DESCRIBES KEY INSIGHTS` TAKEN FROM METRICS IN THE PROJECT RESULTS THINK TOP OR MOST IMPORTANT RESULTS._
 
 ```{python}
 #| label: project data
@@ -48,11 +48,11 @@ df = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-
 
 
 
-## Finished Readings
+## QUESTION|TASK 1
 
-__Finish the readings and be prepared with any questions to get your environment working smoothly (class for on-campus and Slack for online)__
+__Write an SQL query to create a new dataframe about baseball players who attended BYU-Idaho. The new table should contain five columns: playerID, schoolID, salary, and the yearID/teamID associated with each salary. Order the table by salary (highest to lowest) and print out the table in your report.__
 
-__I got everything working after going to the tutoring lab.__
+_type your results and analysis here_
 
 ```{python}
 #| label: Q1
@@ -63,10 +63,11 @@ __I got everything working after going to the tutoring lab.__
 ```
 
 
+
 ```{python}
 #| label: Q1 chart
 #| code-summary: plot example
-#| fig-cap: ""
+#| fig-cap: "My useless chart"
 #| fig-align: center
 # Include and execute your code here
 chart = px.bar(df.head(200),
@@ -80,7 +81,7 @@ chart.show()
 ```{python}
 #| label: Q1 table
 #| code-summary: table example
-#| tbl-cap: ""
+#| tbl-cap: "Not much of a table"
 #| tbl-cap-location: top
 # Include and execute your code here
 mydat = df.head(1000)\
@@ -95,18 +96,23 @@ display(mydat)
 ```
 
 
-## Engine Size Vs MPG Scatterplot
+## QUESTION|TASK 2
 
-__In VS Code, write a python script to create the example chart from section 3.2.2 of the textbook (part of the assigned readings). Note that you will be using Plotly Express to display the chart instead of Altair which is used in the book.__
+__This three-part question requires you to calculate batting average (number of hits divided by the number of at-bats)__
 
-__The bigger the engine size, the less gas mileage it will have on the highway. Or in other words, it will consume more gas.__
+__Write an SQL query that provides playerID, yearID, and batting average for players with at least 1 at bat that year. Sort the table from highest batting average to lowest, and then by playerid alphabetically. Show the top 5 results in your report.__
+
+__Use the same query as above, but only include players with at least 10 at bats that year. Print the top 5 results.__
+
+__Now calculate the batting average for players over their entire careers (all years combined). Only include players with at least 100 at bats, and print the top 5 results.__
+
+_type your results and analysis here_
 
 ```{python}
 #| label: Q2
 #| code-summary: Read and format data
 # Include and execute your code here
-url = "https://github.com/byuidatascience/data4python4ds/raw/master/data-raw/mpg/mpg.csv"
-mpg = pd.read_csv(url)
+
 
 ```
 
@@ -115,12 +121,12 @@ _include figures in chunks and discuss your findings in the figure._
 ```{python}
 #| label: Q2 chart
 #| code-summary: plot example
-#| fig-cap: "Engine Size Vs MPG"
+#| fig-cap: "My useless chart"
 #| fig-align: center
 # Include and execute your code here
-chart = px.scatter(mpg,
-    x="displ", 
-    y="hwy"
+chart = px.bar(df.head(200),
+    x="name", 
+    y="AK"
 )
 chart.show()
 ```
@@ -129,19 +135,26 @@ chart.show()
 ```{python}
 #| label: Q2 table
 #| code-summary: table example
-#| tbl-cap: ""
+#| tbl-cap: "Not much of a table"
 #| tbl-cap-location: top
 # Include and execute your code here
+mydat = df.head(1000)\
+    .groupby('year')\
+    .sum()\
+    .reset_index()\
+    .tail(10)\
+    .filter(["year", "AK","AR"])
 
+display(mydat)
 
 ```
 
 
-## Markdown Table
+## QUESTION|TASK 3
 
-__Your final report should also include the markdown table created from the following (assuming you have mpg from question 2).__
+__Pick any two baseball teams and compare them using a metric of your choice (average salary, home runs, number of wins, etc). Write an SQL query to get the data you need, then make a graph using Plotly Express to visualize the comparison. What do you learn?__
 
-__Markdown table works now.__
+_type your results and analysis here_
 
 ```{python}
 #| label: Q3
@@ -156,26 +169,30 @@ _include figures in chunks and discuss your findings in the figure._
 ```{python}
 #| label: Q3 chart
 #| code-summary: plot example
-#| fig-cap: "my useless chart"
+#| fig-cap: "My useless chart"
 #| fig-align: center
 # Include and execute your code here
-
+chart = px.bar(df.head(200),
+    x="name", 
+    y="AK"
+)
+chart.show()
 ```
 
 
 ```{python}
-#| label: Q3 markdown table
+#| label: Q3 table
 #| code-summary: table example
 #| tbl-cap: "Not much of a table"
 #| tbl-cap-location: top
 # Include and execute your code here
+mydat = df.head(1000)\
+    .groupby('year')\
+    .sum()\
+    .reset_index()\
+    .tail(10)\
+    .filter(["year", "AK","AR"])
 
-
-#print(blob)
-
-print(mpg
-  .head(5)
-  .filter(["manufacturer", "model","year", "hwy"])
-  .to_markdown(index=False))
+display(mydat)
 
 ```

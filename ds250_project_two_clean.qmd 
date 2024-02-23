@@ -1,0 +1,245 @@
+---
+title: "Client Report - Project 2"
+subtitle: "Course DS 250"
+author: "Keith Crawford"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+```
+
+
+## Avoid People and Big Airports
+
+_If you can do your best, avoid flying when and where others fly. The bigger airports like Chicago, and Atlanta will have a lot more delays due to having more flights (although Denver is pretty big too and seems to do a decent job of keeping delays down). Delays also get worse in the popular months so avoid the summer(namely June, July, and August) and holidays rush (Christmas)._
+
+```{python}
+#| label: project data
+#| code-summary: Read and format project data
+# Include and execute your code here
+url =("https://raw.githubusercontent.com/byuidatascience/data4missing/master/data-raw/flights_missing/flights_missing.json")
+flights_json= pd.read_json(url)
+
+```
+
+
+## Flights Cleaned Up
+
+__Fix all of the varied missing data types in the data to be consistent (all missing values should be displayed as “NaN”). In your report include one record example (one row) from your new data, in the raw JSON format. Your example should display the “NaN” for at least one missing value.__
+
+_I printed out a row with a NaN value._
+
+```{python}
+#| label: Q1
+#| code-summary: Read and format data
+# Include and execute your code here
+# flights_json.info()
+# flights_json.describe()
+# flights_json.isna().sum()
+flights_json.fillna("NaN")
+print(flights_json.iloc[919])
+
+```
+
+
+```{python}
+#| label: Q1 chart
+#| code-summary: plot example
+#| fig-cap: ""
+#| fig-align: center
+# Include and execute your code here
+
+```
+
+
+```{python}
+#| label: Q1 table
+#| code-summary: table example
+#| tbl-cap: ""
+#| tbl-cap-location: top
+# Include and execute your code here
+
+
+```
+
+
+## Worst Delays
+__Which airport has the worst delays? Discuss the metric you chose, and why you chose it to determine the “worst” airport. Your answer should include a summary table that lists (for each airport) the total number of flights, total number of delayed flights, proportion of delayed flights, and average delay time in hours.__
+
+_If we go by average delay time in hours it would be Chicago or Atlanta. They dominated the top 50 in that stat. However, I decided to look at what was the average delay time per flight, and then the worst by that stat by far would be Salt Lake City airport looking at the top 50. The percentage of delayed flights backs up this stat too if we want to go by the main stats we were asked to create._
+
+```{python}
+#| label: Q2
+#| code-summary: Read and format data
+# Include and execute your code here
+
+
+```
+
+
+
+```{python}
+#| label: Q2 chart
+#| code-summary: plot example
+#| fig-cap: ""
+#| fig-align: center
+# Include and execute your code here
+
+```
+
+
+```{python}
+#| label: Q2 table
+#| code-summary: table example
+#| tbl-cap: "Delayed Flights"
+#| tbl-cap-location: top
+# Include and execute your code here
+(flights_json
+.filter(['airport_name', 'num_of_flights_total', 'num_of_delays_total', 'minutes_delayed_total'])
+.assign(
+  perc_delayed_flights = lambda x: x.num_of_flights_total / x.num_of_delays_total,
+  average_delay_time_hours= lambda x: x.minutes_delayed_total/60,
+  average_delay_per_flight= lambda x: x.num_of_flights_total / x.average_delay_time_hours
+)
+.sort_values(by= ['perc_delayed_flights'], ascending= False)
+.head(50)
+)
+
+
+```
+
+
+## Avoid them pesky delays
+
+__What is the best month to fly if you want to avoid delays of any length? Discuss the metric you chose and why you chose it to calculate your answer. Include one chart to help support your answer, with the x-axis ordered by month. (To answer this question, you will need to remove any rows that are missing the Month variable.)__
+
+_It looks like the best months to fly are between September and November. So right after summer and right before Thanksgiving/Christmas. Which makes sense since demand isn't as high and therefore less mistakes/weather delays happen._
+
+```{python}
+#| label: Q3
+#| code-summary: Read and format data
+# Include and execute your code here
+
+
+```
+
+
+
+```{python}
+#| label: Q3 chart
+#| code-summary: plot example
+#| fig-cap: ""
+#| fig-align: center
+# Include and execute your code here
+flights_json.month.value_counts()
+
+flights1=flights_json.dropna(subset='month', inplace=False)
+
+chart = px.bar(
+  flights1,
+  x="month",
+  y="num_of_delays_total",
+  title= "Number of delayed flights per month"
+)
+chart.show()
+```
+
+
+```{python}
+#| label: Q3 table
+#| code-summary: table example
+#| tbl-cap: ""
+#| tbl-cap-location: top
+# Include and execute your code here
+
+
+```
+
+## Rain, rain, go away
+
+__According to the BTS website, the “Weather” category only accounts for severe weather delays. Mild weather delays are not counted in the “Weather” category, but are actually included in both the “NAS” and “Late-Arriving Aircraft” categories. Your job is to create a new column that calculates the total number of flights delayed by weather (both severe and mild). You will need to replace all the missing values in the Late Aircraft variable with the mean. Show your work by printing the first 5 rows of data in a table. Use these three rules for your calculations:100% of delayed flights in the Weather category are due to weather__
+
+__30% of all delayed flights in the Late-Arriving category are due to weather.__
+
+__From April to August, 40% of delayed flights in the NAS category are due to weather. The rest of the months, the proportion rises to 65%.__
+
+__Using the new weather variable calculated above, create a barplot showing the proportion of all flights that are delayed by weather at each airport. Discuss what you learn from this graph.__
+
+_Ultimately, Chicago and San Francisco are most affected by weather. Which makes sense given 1 is by a great lake and the other is by the ocean. Salt Lake being in a very dry climate is rarely affected by weather delays._
+
+```{python}
+#| label: Q4
+#| code-summary: Read and format data
+# Include and execute your code here
+#Creating new variable to include all weather delay events
+weather = (flights_json.assign(
+    severe = flights_json.num_of_delays_weather, # no missing
+    nodla_nona = lambda x: (x.num_of_delays_late_aircraft
+        .replace(-999, np.nan)), #missing is -999
+    mild_late = lambda x: x.nodla_nona.fillna(x.nodla_nona.mean())*0.3,
+    mild = np.where(
+        flights_json.month.isin(['April', 'May', 'June', 'July', 'August']), 
+            flights_json.num_of_delays_nas*0.4,
+            flights_json.num_of_delays_nas*0.65),
+    weather = lambda x: x.severe + x.mild_late + x.mild,
+    proportion_weather_delay = lambda x: x.weather / x.num_of_delays_total,
+    proportion_weather_total = lambda x:  x.weather / x.num_of_flights_total)
+    .filter(['airport_code','month','year', 'severe','mild', 'mild_late',
+    'weather', 'proportion_weather_total', 
+    'proportion_weather_delay', 'num_of_flights_total', 'num_of_delays_total']))
+weather.head()
+
+```
+
+
+
+```{python}
+#| label: Q4 chart
+#| code-summary: plot example
+#| fig-cap: "Weather Delays"
+#| fig-align: center
+# Include and execute your code here
+chart= px.bar(
+  weather,
+  x="airport_code",
+  y="proportion_weather_total",
+  title="Flights Delayed by Weather at each Airport"
+)
+chart.show()
+```
+
+
+```{python}
+#| label: Q4 table
+#| code-summary: table example
+#| tbl-cap: ""
+#| tbl-cap-location: top
+# Include and execute your code here
+
+
+```
