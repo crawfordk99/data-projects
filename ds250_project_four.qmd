@@ -1,0 +1,246 @@
+---
+title: "Client Report - Project 4"
+subtitle: "Course DS 250"
+author: "Keith Crawford"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+from sklearn.model_selection import train_test_split
+from sklearn import tree
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import confusion_matrix, classification_report
+```
+
+
+## Feeling Old Yet?
+
+_paste your elevator pitch here_
+_Overall, homes have tended to be slightly more condensed since 1980. Part of that is probably due to better safety practices in building homes since removing abestos from homes. There are more outliers when it comes to smaller homes in terms of price because of inflation._
+
+```{python}
+#| label: project data
+#| code-summary: Read and format project data
+# Include and execute your code here
+df = pd.read_csv("https://raw.githubusercontent.com/byuidatascience/data4dwellings/master/data-raw/dwellings_ml/dwellings_ml.csv")
+```
+
+
+
+## Don't forget the pre-80's!
+
+__Create 2-3 charts that evaluate potential relationships between the home variables and before1980. Explain what you learn from the charts that could help a machine learning algorithm.__
+
+_Interestingly enough, it seems that before 1980 homes seemed to have more bathrooms. And the average of net price from homes have skyrocketed lately due to inflation._
+
+```{python}
+#| label: Q1
+#| code-summary: Read and format data
+# Include and execute your code here
+
+
+```
+
+
+
+```{python}
+#| label: Q1 chart
+#| code-summary: plot example
+#| fig-cap: ""
+#| fig-align: center
+# Include and execute your code here
+h_subset = df.filter(
+    ['livearea', 'finbsmnt', 'basement', 'nocars', 'numbdrm', 'numbaths', 'before1980', 'stories', 'yrbuilt']).sample(500)
+chart1 = px.scatter_matrix(h_subset,
+    dimensions=['livearea', 'finbsmnt', 'basement'],
+    color='before1980',
+    # labels={'livearea' : 'Livable Area',
+    # 'finbsmnt' : 'Finished Basement',
+    # 'basement' : 'Basement',
+    # }
+)
+
+
+chart1.update_traces(diagonal_visible=False)
+chart1.show()
+
+chart2 = px.scatter_matrix(h_subset,
+    dimensions=['numbdrm', 'numbaths', 'nocars', 'yrbuilt'],
+    color='before1980',
+    
+)
+chart2.update_traces(diagonal_visible=False)
+chart2.show()
+
+chart3 = px.histogram(
+  df,
+  x='yrbuilt',
+  y='netprice',
+  color='before1980',
+  histfunc= 'avg'
+)
+chart3.show()
+```
+
+
+```{python}
+#| label: Q1 table
+#| code-summary: table example
+#| tbl-cap: ""
+#| tbl-cap-location: top
+# Include and execute your code here
+# corr = h_subset.drop(columns= 'before1980').corr()
+# print(corr)
+```
+
+
+## Why Do You Like Baths?
+
+__Build a classification model labeling houses as being built “before 1980” or “during or after 1980”. Your goal is to reach or exceed 90% accuracy. Explain your final model choice (algorithm, tuning parameters, etc) and describe what other models you tried.__
+
+_Overall, I tried lots of different combinations of the home variables, but number of baths and livable area seemed to have the biggest effect on predicting which homes were pre 1980. Net Price helped push it to 96% in terms of recall on true positives. The rest had little effect. I'll admit that I'm still a little confused on what I'm looking for here, but for what it's worth, the combo of livearea, numbaths, and netprice seemed to identify the greatest amount of pre-1980's homes.
+
+```{python}
+#| label: Q2
+#| code-summary: Read and format data
+# Include and execute your code here
+#Select columns first
+selected_columns=['numbaths', 'livearea', 'netprice']
+#Then make an np array for the features/selected columns, and also the target column
+np_array_features = df[selected_columns].values
+np_array_target = df['before1980'].values
+#Create the training and test data, and the percentage of test data
+train_data, test_data, train_targets, test_targets = train_test_split(np_array_features, np_array_target, test_size=.3)
+classifier= GaussianNB()
+classifier.fit(train_data, train_targets)
+predictions = classifier.predict(test_data)
+
+```
+
+
+```{python}
+#| label: Q2 chart
+#| code-summary: plot example
+#| fig-cap: ""
+#| fig-align: center
+# Include and execute your code here
+
+```
+
+
+```{python}
+#| label: Q2 table
+#| code-summary: table example
+#| tbl-cap: "Not much of a table"
+#| tbl-cap-location: top
+# Include and execute your code here
+
+```
+
+
+## Inflation
+
+__Justify your classification model by discussing the most important features selected by your model. This discussion should include a chart and a description of the features.__
+
+_Looking at this matrix you can see that since 1980 the more standard homes have skyrocketed in price, and that's why in the net price matrixes you see lots of blue homes standing alone in the corner outside of the main bunch up._
+
+```{python}
+#| label: Q3
+#| code-summary: Read and format data
+# Include and execute your code here
+new_subset= df.filter(['livearea', 'numbaths', 'netprice', 'before1980'])
+chart = px.scatter_matrix(
+  new_subset,
+  dimensions = ['livearea', 'numbaths', 'netprice'],
+  color= 'before1980'
+)
+chart.update_traces(diagonal_visible= False)
+chart.show()
+
+
+```
+
+
+
+```{python}
+#| label: Q3 chart
+#| code-summary: plot example
+#| fig-cap: ""
+#| fig-align: center
+# Include and execute your code here
+
+```
+
+
+```{python}
+#| label: Q3 table
+#| code-summary: table example
+#| tbl-cap: ""
+#| tbl-cap-location: top
+# Include and execute your code here
+
+
+```
+
+## It's All About the Positives
+
+__Describe the quality of your classification model using 2-3 different evaluation metrics. You also need to explain how to interpret each of the evaluation metrics you use.__
+
+_The confusion matrix shows that the model is good at finding the true positives. It is not good at picking up true no's, but I figured that was okay since the main goal was to find homes that were built before 1980. The classification report shows that recall is 96-97% for homes that were built before 1980._
+
+```{python}
+#| label: Q4
+#| code-summary: Read and format data
+# Include and execute your code here
+print(confusion_matrix(test_targets, predictions))
+print(classification_report(test_targets, predictions))
+
+```
+
+
+
+```{python}
+#| label: Q4 chart
+#| code-summary: plot example
+#| fig-cap: ""
+#| fig-align: center
+# Include and execute your code here
+
+```
+
+
+```{python}
+#| label: Q4 table
+#| code-summary: table example
+#| tbl-cap: ""
+#| tbl-cap-location: top
+# Include and execute your code here
+
+
+```
