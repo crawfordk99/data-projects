@@ -36,12 +36,13 @@ from sklearn import tree
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.linear_model import LogisticRegression
+
 ```
 
 
 ## Feeling Old Yet?
 
-_paste your elevator pitch here_
 _Overall, homes have tended to be slightly more condensed since 1980. Part of that is probably due to better safety practices in building homes since removing abestos from homes. There are more outliers when it comes to smaller homes in terms of price because of inflation._
 
 ```{python}
@@ -80,6 +81,7 @@ h_subset = df.filter(
 chart1 = px.scatter_matrix(h_subset,
     dimensions=['livearea', 'finbsmnt', 'basement'],
     color='before1980',
+    title = 'Livable area and Basement Size'
     # labels={'livearea' : 'Livable Area',
     # 'finbsmnt' : 'Finished Basement',
     # 'basement' : 'Basement',
@@ -93,6 +95,7 @@ chart1.show()
 chart2 = px.scatter_matrix(h_subset,
     dimensions=['numbdrm', 'numbaths', 'nocars', 'yrbuilt'],
     color='before1980',
+    title= 'Baths and Number of Cars'
     
 )
 chart2.update_traces(diagonal_visible=False)
@@ -103,7 +106,9 @@ chart3 = px.histogram(
   x='yrbuilt',
   y='netprice',
   color='before1980',
-  histfunc= 'avg'
+  histfunc= 'avg',
+  title = 'Net Price of Houses over Time'
+
 )
 chart3.show()
 ```
@@ -124,23 +129,32 @@ chart3.show()
 
 __Build a classification model labeling houses as being built “before 1980” or “during or after 1980”. Your goal is to reach or exceed 90% accuracy. Explain your final model choice (algorithm, tuning parameters, etc) and describe what other models you tried.__
 
-_Overall, I tried lots of different combinations of the home variables, but number of baths and livable area seemed to have the biggest effect on predicting which homes were pre 1980. Net Price helped push it to 96% in terms of recall on true positives. The rest had little effect. I'll admit that I'm still a little confused on what I'm looking for here, but for what it's worth, the combo of livearea, numbaths, and netprice seemed to identify the greatest amount of pre-1980's homes.
+_Overall, I tried lots of different combinations of the home variables, but number of baths and livable area seemed to have the biggest effect on predicting which homes were pre 1980. Net Price helped push it to 96% in terms of recall on true positives. The rest had little effect. I'll admit that I'm still a little confused on what I'm looking for here, but for what it's worth, the combo of livearea, numbaths, and netprice seemed to identify the greatest amount of pre-1980's homes. 
 
 ```{python}
 #| label: Q2
 #| code-summary: Read and format data
 # Include and execute your code here
 #Select columns first
-selected_columns=['numbaths', 'livearea', 'netprice']
+selected_columns=['numbaths', 'livearea', 'netprice', 'finbsmnt', 'nocars', 'basement', 'numbdrm', 'numbaths', 'stories']
 #Then make an np array for the features/selected columns, and also the target column
 np_array_features = df[selected_columns].values
 np_array_target = df['before1980'].values
 #Create the training and test data, and the percentage of test data
-train_data, test_data, train_targets, test_targets = train_test_split(np_array_features, np_array_target, test_size=.3)
+train_data, test_data, train_targets, test_targets = train_test_split(np_array_features, np_array_target, test_size=.3, random_state=76)
 classifier= GaussianNB()
 classifier.fit(train_data, train_targets)
 predictions = classifier.predict(test_data)
 
+# average_test_data = np.mean(test_targets[:10])
+# print(average_test_data)
+
+#To make sure data is not overfitting, if the scores are far apart, that means the selected columns are overfitting
+# regression = LogisticRegression(max_iter = 1000)
+# regression.fit(train_data, train_targets )
+
+# print(regression.score(train_data, train_targets))
+# print(regression.score(test_data, test_targets))
 ```
 
 
@@ -178,7 +192,8 @@ new_subset= df.filter(['livearea', 'numbaths', 'netprice', 'before1980'])
 chart = px.scatter_matrix(
   new_subset,
   dimensions = ['livearea', 'numbaths', 'netprice'],
-  color= 'before1980'
+  color= 'before1980',
+  title= 'Key attributes of Houses Before 1980'
 )
 chart.update_traces(diagonal_visible= False)
 chart.show()
