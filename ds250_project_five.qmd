@@ -31,12 +31,16 @@ execute:
 import pandas as pd
 import numpy as np
 import plotly.express as px
-
-
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.linear_model import LogisticRegression
 ```
 
 
-## 
+## Let's See the Stars
 
 __
 
@@ -44,23 +48,81 @@ __
 #| label: project data
 #| code-summary: Read and format project data
 # Include and execute your code here
-df = pd.read_csv("")
+url =("https://raw.githubusercontent.com/fivethirtyeight/data/master/star-wars-survey/StarWars.csv")
+df_cols = pd.read_csv(url, encoding= 'unicode-escape', engine= 'python', nrows =1).melt()
+df = pd.read_csv(url,encoding= 'unicode-escape', skiprows=2, header=None)
+
+
+
 ```
 
 
 
-## 
+## Clean Up Time
 
 __Shorten the column names and clean them up for easier use with pandas. Provide a table or list that exemplifies how you fixed the names.__
 
-__
+_Completed the task._
 
 ```{python}
 #| label: Q1
 #| code-summary: Read and format data
 # Include and execute your code here
+(df_cols
+   .replace('Unnamed: \d{1,2}', np.nan, regex=True)
+   .replace('Response', "")
+   .assign(
+      clean_variable = lambda x: x.variable.str.strip()
+         .replace(
+            'Which of the following Star Wars films have you seen? Please select all that apply.','seen'),
+      clean_value = lambda x: x.value.str.strip()
+   )
+   .fillna(method = 'ffill')
+   .assign(
+      column_name = lambda x: x.clean_variable.str.cat(x.clean_value, sep = "__"),
+   )
+)
 
 
+variables_replace = {
+    'Which of the following Star Wars films have you seen\\? Please select all that apply\\.':'seen_episode_1',
+    'Unnamed: 4' : 'seen_episode_2', 'Unnamed: 5' : 'seen_episode_3', 'Unnamed: 6': 'seen_episode_4', 'Unnamed: 7' : 'seen_episode_5', 'Unnamed: 8' : 'seen_episode_6', 'Unnamed: 10': 'rank_episode_2', 'Unnamed: 11' : 'rank_episode_3', 'Unnamed: 12': 'rank_episode_4', 'Unnamed: 13':'rank_episode_5', 'Unnamed: 14': 'rank_episode_6',
+    'Please rank the Star Wars films in order of preference with 1 being your favorite film in the franchise and 6 being your least favorite film.':'rank_episode_1',
+    'Please state whether you view the following characters favorably, unfavorably, or are unfamiliar with him/her.':'view',
+    'Do you consider yourself to be a fan of the Star Trek franchise\\?':'star_trek_fan',
+    'Do you consider yourself to be a fan of the Expanded Universe\\?\x8c':'expanded_fan',
+    'Are you familiar with the Expanded Universe\\?':'know_expanded',
+    'Have you seen any of the 6 films in the Star Wars franchise\\?':'seen_any',
+    'Do you consider yourself to be a fan of the Star Wars film franchise\\?':'star_wars_fans',
+    'Which character shot first\\?':'shot_first',
+    'Unnamed: \d{1,2}':np.nan,' ':'_',
+    
+}
+values_replace = {
+    'Response':'',
+    'Star Wars: Episode ':'',
+    ' ':'_'
+}
+df_cols.value.str.strip().replace(values_replace, regex=True)
+# print(df_names.value)
+df_cols.variable.str.strip().replace(variables_replace, regex=True)
+# print(df_names.variable)
+df_cols_use = (df_cols
+    .assign(
+        value_replace = lambda x:  x.value.str.strip().replace(values_replace, regex=True),
+        variable_replace = lambda x: x.variable.str.strip().replace(variables_replace, regex=True)
+    )
+    .fillna(method = 'ffill')
+    .fillna(value = "")
+    .assign(column_names = lambda x: x.variable_replace.str.cat(x.value_replace, sep = "__").str.strip('__').str.lower())
+    )
+df.columns = df_cols_use['variable_replace']
+df = df.replace(values_replace, regex=True)
+
+
+
+
+df.head()
 ```
 
 
@@ -71,6 +133,15 @@ __
 #| fig-cap: ""
 #| fig-align: center
 # Include and execute your code here
+
+# df_example_oh = df[df['star_wars_fans', 'star_trek_fan','Age']]
+# pd.get_dummies(df_example_oh)
+# # pd.get_dummies(df_example_oh, drop_first=False)
+# df_example_oh
+# (df.filter(regex = "seen_").fillna(value = "NO").apply(lambda x: pd.factorize(x)[0], axis = 0).apply(lambda x: np.absolute(x - 1), axis = 0))
+# df.head()
+
+maledf = df[df['Gender'] == 'Male']
 
 ```
 
@@ -85,7 +156,7 @@ __
 ```
 
 
-## 
+## Setting the Finale
 
 __Clean and format the data so that it can be used in a machine learning model. As you format the data, you should complete each item listed below. In your final report provide example(s) of the reformatted data with a short description of the changes made.__
 __Filter the dataset to respondents that have seen at least one film.__
@@ -95,12 +166,62 @@ __Create a new column that converts the income ranges to a single number. Drop t
 __Create your target (also known as “y” or “label”) column based on the new income range column.__
 __One-hot encode all remaining categorical columns.__
 
-__
+_For age group I split the range, and returned the first number, besides over 60 where I returned 60. I made an education level column with the numbers I replaced the degree values with. I made an Income column and took the first number in the range for each. Then I used get dummies for all the rest of the categorical columns I felt needed to be in the algorithm. Lastly, I made an Income_Target column that filtered for those making over 50,000 as my target column for the algorithm._
 
 ```{python}
 #| label: Q2
 #| code-summary: Read and format data
 # Include and execute your code here
+
+
+def Age_Group_Number(age):
+    if pd.isna(age):
+        return np.nan
+    elif age == '>_60':
+        return 60
+    else:
+        start, end = map(int, age.split('-'))
+        return start
+income_num = (df.Household_Income.
+        str.split("_-_", expand = True).
+        rename(columns = {0: 'income_min', 1: 'income_max'}).
+        apply(lambda x: x.str.replace("$", "")).
+        apply(lambda x: x.str.replace(",", "")).
+        apply(lambda x: x.str.replace("+", "")).
+        astype('float')
+)
+
+education_level = (df.Education 
+    .str.replace('Less_than_high_school_degree', '9')
+    .str.replace('High_school_degree', '12')
+    .str.replace('Some_college_or_Associate_degree', '14')
+    .str.replace('Bachelor_degree', '16')
+    .str.replace('Graduate_degree', '20')
+    .astype('float')
+)
+df_example = pd.concat(
+    [   income_num.income_min,
+        education_level],
+    axis = 1
+)
+
+new_col1 = df_example['income_min']
+new_col2 = df_example['Education']
+df = pd.concat(
+    [df, new_col1.rename('Income')], axis = 1
+)
+df = pd.concat(
+    [df, new_col2.rename('Education_Level')], axis = 1
+)
+
+yesdf = df[df['seen_any'] == 'Yes']
+yesdf = (yesdf
+    .assign(
+        Age_Group = lambda x: x.Age.apply(Age_Group_Number)
+    )
+    .drop(columns= ['Age', 'Education', 'Household_Income'])
+)
+yesdf.head()
 
 
 ```
@@ -112,6 +233,22 @@ __
 #| fig-cap: ""
 #| fig-align: center
 # Include and execute your code here
+yesdf = yesdf.fillna(0)
+dummies_columns = yesdf[[ 'seen_any', 'star_wars_fans', 'seen_episode_1', 'seen_episode_2', 'seen_episode_3', 'seen_episode_4', 'seen_episode_5', 'seen_episode_6', 'view', 'shot_first', 'know_expanded','expanded_fanæ', 'star_trek_fan']]
+dummies_df = pd.get_dummies(dummies_columns, dtype= float)
+yesdf = pd.concat([yesdf, dummies_df], axis = 1)
+yesdf = yesdf.drop(columns= [ 'seen_any', 'star_wars_fans', 'seen_episode_1', 'seen_episode_2', 'seen_episode_3', 'seen_episode_4', 'seen_episode_5', 'seen_episode_6', 'view', 'shot_first', 'know_expanded','expanded_fanæ', 'star_trek_fan'])
+
+yesdf['Income_Target'] = yesdf['Income'].values > 50000
+selected_columns =['star_wars_fans_Yes', 'rank_episode_1', 'rank_episode_2', 'rank_episode_3', 'rank_episode_4', 'rank_episode_5', 'rank_episode_6', 'Education_Level', 'Age_Group', 'seen_episode_1_I__The_Phantom_Menace', 'seen_episode_2_II__Attack_of_the_Clones', 'seen_episode_3_III__Revenge_of_the_Sith', 'seen_episode_4_IV__A_New_Hope', 'seen_episode_5_V_The_Empire_Strikes_Back', 'seen_episode_6_VI_Return_of_the_Jedi']
+
+
+np_array_features = yesdf[selected_columns].values
+np_array_target = yesdf['Income_Target'].values
+train_data, test_data, train_targets, test_targets = train_test_split(np_array_features, np_array_target, test_size = .3, random_state = 76)
+classifier= GaussianNB()
+classifier.fit(train_data, train_targets)
+predictions = classifier.predict(test_data)
 
 ```
 
@@ -126,17 +263,85 @@ __
 ```
 
 
-## 
+## Can't Unsee the Shot
 
-____
+__Validate that the data provided on GitHub lines up with the article by recreating 2 of the visuals from the article.__
 
-__
+_Duplicated the which movies have you watched graph and the who shot first graph. Some of the rows are missing so the numbers are short of the article, but the orders are still right._
 
 ```{python}
 #| label: Q3
 #| code-summary: Read and format data
 # Include and execute your code here
+seenfilter = yesdf[['seen_episode_1_I__The_Phantom_Menace', 'seen_episode_2_II__Attack_of_the_Clones', 'seen_episode_3_III__Revenge_of_the_Sith','seen_episode_4_IV__A_New_Hope', 'seen_episode_5_V_The_Empire_Strikes_Back', 'seen_episode_6_VI_Return_of_the_Jedi']]
+watch_counts = pd.DataFrame(columns = ['Episode', 'Mean'])
+for column in seenfilter.columns:
+    mean_value = seenfilter[column].mean() 
+    watch_counts.loc[len(watch_counts)] = [column, mean_value]
+watch_counts = (watch_counts
+    .assign(
+        Percentage = lambda x: x.Mean.values * 100
+    )
+)
 
+# watch_counts = (watch_counts
+#     .assign(
+#         Watch_Decimal = lambda x: x.Count.values / 835,
+#         Watch_Percentage = lambda x: x.Watch_Decimal * 100
+#     )
+
+# )
+#For formatting the percentages
+text_template = "%{x:.0f}%"
+
+chart1 = px.bar(
+    watch_counts,
+    x='Percentage',
+    y='Episode',
+    title = 'Which Star Wars Movies Have You Seen?',
+    text_auto = text_template,
+    labels= {
+        'Mean' : '',
+        'Episode' : ''
+    }
+)
+chart1.update_traces(textposition = 'outside', cliponaxis = False, texttemplate = text_template)
+chart1.show()
+
+# shot_counts = yesdf['shot_first'].value_counts().reset_index()
+# shot_counts.columns = ['Value', 'Count']
+# shot_counts = (shot_counts
+#     .assign(
+#         Shot_Decimal = lambda x: x.Count.values / 834,
+#         Shot_Percentage = lambda x: x.Shot_Decimal.values * 100
+#     )
+# )
+shotfilter= yesdf[["shot_first_I_don't_understand_this_question", 'shot_first_Han', 'shot_first_Greedo']]
+
+shot_counts = pd.DataFrame(columns = ['Response', 'Mean'])
+for column in shotfilter.columns:
+    mean_value = shotfilter[column].mean() 
+    shot_counts.loc[len(shot_counts)] = [column, mean_value]
+shot_counts = (shot_counts
+    .assign(
+        Percentage = lambda x: x.Mean.values * 100
+    )
+)
+chart2 = px.bar(
+    shot_counts,
+    x='Percentage',
+    y='Response',
+    title = "Who Shot First?",
+    text_auto = text_template,
+    labels = {
+        'Percentage' : '',
+        'Response' : ''
+    }
+)
+
+chart2.update_traces(textposition = 'outside', cliponaxis = False, texttemplate = text_template)
+
+chart2.show()
 
 ```
 
@@ -162,17 +367,18 @@ __
 
 ```
 
-## 
+## Bringing in the Stars
 
-____
+__Build a machine learning model that predicts whether a person makes more than $50k. Describe your model and report the accuracy.__
 
-__
+_Here's my reports. The true row represents how accurate the algorithm is at predicting whether they make over 50000. The recall is about 78%, and it finds about 49 true positives. Not the greatest algorithm, which is to be expected._
 
 ```{python}
 #| label: Q4
 #| code-summary: Read and format data
 # Include and execute your code here
-
+print(confusion_matrix(test_targets, predictions))
+print(classification_report(test_targets, predictions))
 ```
 
 
